@@ -17,8 +17,8 @@
                       exp ...)
      (begin (connect host port)
             (let ([val (begin exp ...)])
-                 (disconnect)
-                 val))]))
+              (disconnect)
+              val))]))
 
 (define *the-magic-number* 71)
 
@@ -38,9 +38,9 @@
          [length (g-int->integer length-bytes)])
     
     (when (not (= *the-magic-number* magic))
-          (error "magic number wrong"))
+      (error "magic number wrong"))
     (when (= error-code 1)
-          (error "server threw an error"))
+      (error "server threw an error" (read-bytes length port)))
     (read-bytes length port)))
 
 (define (sexp->bytes sexp)
@@ -72,9 +72,10 @@
       (let ([in (connection-input (current-connection))]
             [out (connection-output (current-connection))]
             [file-in (open-input-file file)])
-        (do ([str (read-bytes *max-message-length* file-in)])
+        (do ([str (read-bytes *max-message-length* file-in)
+                  (read-bytes *max-message-length* file-in)])
             ((eof-object? str))
-          (write-bytes-avail str out)
+          (write-bytes-avail (make-message str) out)
           (read-message in)))))
 
 (define (split-every ls n)
